@@ -26,6 +26,12 @@ function _removeValue(arr, value) {
   throw new Error('Attempted to remove value ' + value + ' from array: ' + arr);
 }
 
+function _sum(arr) {
+  return arr.reduce(function(acc, value) {
+    return acc + value;
+  }, 0);
+}
+
 _baseDeck = [6,6,6,6,6,6,5,5,4,4,3,3,2,2,1,1];
 
 function RoundState(historyStack, currentPlayer, hands) {
@@ -49,6 +55,38 @@ RoundState.prototype = {
     // Returns the index of the player that isn't the current player
     return (this.currentPlayer + 1) % 2;
   },
+  _computePile: function() {
+    var pile = [];
+
+    for (var i=0; i<this.historyStack; i++) {
+      var move = this.historyStack[i];
+      if (move.action === 'play') {
+        pile.push(move.rank);
+      } else if (move.action === 'take') {
+        pile.pop();
+      }
+    }
+
+    return pile;
+  },
+  _computePileValue: function() {
+    return _sum(this._computePile());
+  },
+  _computePlayerValues() {
+    var values = this._hands.map(_sum);
+    var pile = [];
+
+    for (var i=0; i<this.historyStack; i++) {
+      var move = this.historyStack[i];
+      if (move.action === 'play') {
+        pile.push(move.rank);
+      } else if (move.action === 'take') {
+        values[i % 2] += pile.pop();
+      }
+    }
+
+    return values;
+  },
   clone: function() {
     return new RoundState(
       this.historyStack.slice(0),
@@ -56,6 +94,8 @@ RoundState.prototype = {
       [this._hands[0].slice(0), this._hands[1].slice(0)]);
   },
   perspectiveClone: function(perspective) {
+    // Return the game state except without hand information for the opponent
+    // to player with index `perspective`.
     var clone = this.clone();
     clone._hands[(perspective + 1) % 2] = null;
 
@@ -128,7 +168,7 @@ RoundState.prototype = {
       .runMove({action: 'play', rank: 6})
       .runMove({action: 'knock'})
 
-    _assertEq(rs.winner, null);
+    _assertEq(rs.winner, 0);
   }
 }
 
