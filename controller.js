@@ -1,7 +1,3 @@
-function Controller(player1, player2, options) {
-  this._players = [player1, player2];
-}
-
 function _shuffle(arr) {
   // FY shuffle an array in place
   var j, tmp;
@@ -27,6 +23,8 @@ function _removeValue(arr, value) {
 }
 
 function _sum(arr) {
+  if (arr === null) { return 0; }
+
   return arr.reduce(function(acc, value) {
     return acc + value;
   }, 0);
@@ -55,10 +53,10 @@ RoundState.prototype = {
     // Returns the index of the player that isn't the current player
     return (this.currentPlayer + 1) % 2;
   },
-  _computePile: function() {
+  computePile: function() {
     var pile = [];
 
-    for (var i=0; i<this.historyStack; i++) {
+    for (var i=0; i<this.historyStack.length; i++) {
       var move = this.historyStack[i];
       if (move.action === 'play') {
         pile.push(move.rank);
@@ -69,10 +67,10 @@ RoundState.prototype = {
 
     return pile;
   },
-  _computePileValue: function() {
-    return _sum(this._computePile());
+  computePileValue: function() {
+    return _sum(this.computePile());
   },
-  _computePlayerValues() {
+  computePlayerValues() {
     var values = this._hands.map(_sum);
     var pile = [];
 
@@ -113,7 +111,7 @@ RoundState.prototype = {
 
       _removeValue(clone._hands[clone.currentPlayer], move.rank);
     } else if (move.action === 'take') {
-      var pile = clone._computePile();
+      var pile = clone.computePile();
 
       if (pile.length < 1) {
         throw new Error('Player ' + (currentPlayer + 1) + ' attempted to take '
@@ -129,8 +127,8 @@ RoundState.prototype = {
     } else if (move.action === 'knock') {
       clone.continuing = false;
 
-      var pileValue = clone._computePileValue();
-      var playerValues = clone._computePlayerValues();
+      var pileValue = clone.computePileValue();
+      var playerValues = clone.computePlayerValues();
 
       if (pileValue < playerValues[clone.currentPlayer]) {
         clone.winner = clone._op();
@@ -172,19 +170,29 @@ RoundState.prototype = {
   }
 }
 
+function Controller(player1, player2, options) {
+  this._players = [player1, player2];
+}
+
 Controller.prototype = {
   runOneRound: function() {
-    var hands = this._generateHands(),
-      historyStack = [],
-      currentPlayer = 0;
+    var currentState = new RoundState();
 
-    while (1) {
-      var move = this._players[currentPlayer].nextMove(hands[currentPlayer],
-                                                       historyStack);
+    this._players[0].startRound(0);
+    this._players[1].startRound(1);
 
+    while (currentState.continuing) {
+      var currentPlayer = currentState.currentPlayer,
+        stateForPlayer = currentState.perspectiveClone(currentPlayer),
+        move = this._players[currentPlayer].nextMove(stateForPlayer);
+
+      currentState = currentState.runMove(move);
     }
+
+    console.log('Player ' + (currentState.winner + 1) + ' has won!');
+    console.log('History: ');
+    console.log(currentState.historyStack);
   }
 }
 
-var rs = new RoundState();
-rs._testSelf();
+module.exports = Controller;
