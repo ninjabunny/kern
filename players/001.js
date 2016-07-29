@@ -13,18 +13,30 @@ Player.prototype = {
         delta = myValue - pileValue,
         myHand = gameState._hands[this._playerIdx],
         myHandRate = null,
-        enemyHandRate = null;
+        enemyHandRate = null,
+        condition;
 
 
       // Step 1: Determine if my Hand and the Enemy Hand is High or Low
-      console.log("Hand: " + myHand);
+      //console.log("Hand: " + myHand);
       myHandRate = computeMyHandRate(myHand);
-      console.log("My hand is: " + myHandRate);
+      //console.log("My hand is: " + myHandRate);
 
       // Step 2: Check if condition can be fulfilled
          // 2a: checkEnemyChance of exact
          //     if high: step 3
          //     if  low: knock
+      condition = checkCondition(myHand,pileValue);
+      if(condition.pass==true){
+        //console.log("ey bruh it passed and the card is " + condition.index);
+        //console.log("total hand is " +pileValue);
+        if (condition.discard==true){
+          return {action: 'discard', rank:6};
+        }
+        else{
+          return {action: 'play', rank: myHand[condition.index]};
+        }
+      }
 
       // Step 3: If more than one 6, discard
       if (findOccurrences(myHand,6)>1){
@@ -61,22 +73,34 @@ function computerEnemyHandRate(hand, pileValue){
 
 };
 
-
+//TODO: Refactor into seperate functions
 function checkCondition(hand, pileValue){
   var condition = {};
+  var tempHand;
   condition.index = null;
   condition.pass = null;
+  condition.discard = null;
+  //console.log(pileValue);
   for(var i = 0; i < hand.length; i++){
-    var tempHand = hand.slice(0);
-    tempHand.splice(i,1);
-    if (computeSumMyHand(tempHand) - pileValue < 2){
+    //console.log("now pile v is "+pileValue);
+    tempHand = hand.slice(0);
+    cardToMove = tempHand.splice(i,1)[0];
+    //If value of the pile added with the card taken out of the current hand is at most one more than hand after, pass
+    if (pileValue+cardToMove - computeSumMyHand(tempHand) >=0 && 
+      pileValue+cardToMove - computeSumMyHand(tempHand) < 2){
       condition.index = i;
       condition.pass = true;
       return condition;
     }
     else condition.pass = false;
   }
-  return false;
+  if(hand.indexOf(6)>=0 && (computeSumMyHand(hand)-6 == pileValue)){
+      condition.discard = true;
+      condition.pass = true;
+      condition.index = hand.indexOf(6);
+      return condition;
+    }
+  return condition;
 }
 
 function computeSumMyHand(hand){
