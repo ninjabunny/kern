@@ -73,7 +73,7 @@ function computerEnemyHandRate(hand, pileValue){
 
 };
 
-//TODO: Refactor into seperate functions
+//TODO: Refactor into seperate functions ASAP
 function checkCondition(hand, pileValue){
   var condition = {};
   var tempHand;
