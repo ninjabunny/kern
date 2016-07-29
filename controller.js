@@ -70,7 +70,7 @@ RoundState.prototype = {
   computePileValue: function() {
     return _sum(this.computePile());
   },
-  computePlayerValues() {
+  computePlayerValues: function() {
     var values = this._hands.map(_sum);
     var pile = [];
 
