@@ -16,21 +16,27 @@ Player.prototype = {
     var myValue = gameState.computePlayerValues()[this._playerIdx],
       pileValue = gameState.computePileValue(),
       delta = myValue - pileValue,
-      myHand = gameState._hands[this._playerIdx];
+      myHand = gameState._hands[this._playerIdx],
       history = gameState.historyStack;
-      if(this.getRecords().length === 16){
-        console.log('my starting hand: ' + myHand);
-        removeUniqueArr(this.getRecords(), myHand[0]);
-        removeUniqueArr(this.getRecords(), myHand[1]);
-        removeUniqueArr(this.getRecords(), myHand[2]);
-        removeUniqueArr(this.getRecords(), myHand[3]);
-        removeUniqueArr(this.getRecords(), myHand[4]);
-        removeUniqueArr(this.getRecords(), myHand[5]);
-        console.log(this.getRecords());  
-      }
+    if(this.getRecords().length === 16){
+      console.log('my starting hand: ' + myHand);
+      removeUniqueArr(this.getRecords(), myHand[0]);
+      removeUniqueArr(this.getRecords(), myHand[1]);
+      removeUniqueArr(this.getRecords(), myHand[2]);
+      removeUniqueArr(this.getRecords(), myHand[3]);
+      removeUniqueArr(this.getRecords(), myHand[4]);
+      removeUniqueArr(this.getRecords(), myHand[5]);
+      console.log(this.getRecords());  
+    }
+    //remove played card
+    if(history.length > 0){
       removeUniqueArr(this.getRecords(), history[history.length -1].rank);
-      console.log(this.getRecords());
-
+      if(history[history.length -2] !== undefined){
+        removeUniqueArr(this.getRecords(), history[history.length -2].rank);
+      }
+        
+    }
+    console.log(this.getRecords());
     if (delta < 1) {
       return {action: 'knock'};
     } else {
@@ -43,6 +49,7 @@ Player.prototype = {
 
       return {action: 'play', rank: myHand[0]};
     }
+    
     function contains6(){
       for (var i=0; i<myHand.length; i++) {
         if(myHand[i] === 6){
