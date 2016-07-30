@@ -1,12 +1,15 @@
 function Player() {
   this._playerIdx = null;
+  var records;
+  this.getRecords = function(){return records;};
+  this.setRecords = function(value){records = value;};
 };
-var baseDeck = [6,6,6,6,6,6,5,5,4,4,3,3,2,2,1,1];
+
 Player.prototype = {
   
-
   startRound: function(idx) {
     this._playerIdx = idx;
+    this.setRecords([6,6,6,6,6,6,5,5,4,4,3,3,2,2,1,1]); 
   },
   nextMove: function(gameState) {
 
@@ -15,36 +18,19 @@ Player.prototype = {
       delta = myValue - pileValue,
       myHand = gameState._hands[this._playerIdx];
       history = gameState.historyStack;
-
-
-    // deduce possible enemy cards
-    if(baseDeck.length === 16){
-      console.log(myHand);
-      console.log(baseDeck);
-      //remove my own cards first
-      for(var i = 0; i < myHand.length; i++){
-        console.log('fire');
-        baseDeck = removeUniqueArr(baseDeck, myHand[i]);  
+      if(this.getRecords().length === 16){
+        console.log('my starting hand: ' + myHand);
+        removeUniqueArr(this.getRecords(), myHand[0]);
+        removeUniqueArr(this.getRecords(), myHand[1]);
+        removeUniqueArr(this.getRecords(), myHand[2]);
+        removeUniqueArr(this.getRecords(), myHand[3]);
+        removeUniqueArr(this.getRecords(), myHand[4]);
+        removeUniqueArr(this.getRecords(), myHand[5]);
+        console.log(this.getRecords());  
       }
-      // removeUniqueArr(baseDeck, myHand[0]);
-      // removeUniqueArr(baseDeck, myHand[1]);
-      // removeUniqueArr(baseDeck, myHand[2]);
-      // removeUniqueArr(baseDeck, myHand[3]);
-      // removeUniqueArr(baseDeck, myHand[4]);
-      // removeUniqueArr(baseDeck, myHand[5]);
-      console.log(baseDeck);
-    }
-    // if(history[history.length].rank !== undefined){
-    //   removeUniqueArr(baseDeck, history[history.length].rank);  
-    // }
-    
-    console.log(baseDeck);
+      removeUniqueArr(this.getRecords(), history[history.length -1].rank);
+      console.log(this.getRecords());
 
-    if(history.length === 0){
-      //I am first player
-      //stub: throw a 6,
-      //stub: throw something else
-    }
     if (delta < 1) {
       return {action: 'knock'};
     } else {
@@ -72,7 +58,6 @@ Player.prototype = {
           break;
         }
       }
-      
     }
   }
 };
